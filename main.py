@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 import mysql.connector
 import os # Para leer variables de entorno (más seguro)
+from typing import List
 from fastapi import FastAPI
 from pydantic import BaseModel
 from sklearn.metrics.pairwise import cosine_similarity
@@ -86,7 +87,7 @@ def load_model_and_data():
 
 class ProjectRequest(BaseModel):
     categoria_proyecto: str
-    habilidades_requeridas: str
+    habilidades_requeridas: List[str] # Changed to a list of strings
 
 @app.post("/recommend/")
 async def get_recommendations(project: ProjectRequest):
@@ -106,8 +107,7 @@ async def get_recommendations(project: ProjectRequest):
     live_profiles_matrix = vectorizer.transform(live_profiles_text)
 
     # Crear el perfil del proyecto
-    habilidades_lista = json.loads(project.habilidades_requeridas)
-    habilidades_texto = ' '.join(habilidades_lista)
+    habilidades_texto = ' '.join(project.habilidades_requeridas)
     perfil_proyecto = (habilidades_texto + ' ') * 3 + project.categoria_proyecto
     proyecto_vector = vectorizer.transform([perfil_proyecto])
     
