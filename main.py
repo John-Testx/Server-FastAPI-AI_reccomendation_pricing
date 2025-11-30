@@ -11,48 +11,8 @@ from sklearn.metrics.pairwise import cosine_similarity
 from dotenv import load_dotenv
 load_dotenv()
 
-# --- 1. CONFIGURACIÓN DE LA BASE DE DATOS ---
-
-DB_HOST = os.getenv("DB_HOST")
-DB_USER = os.getenv("DB_USER")
-DB_PASS = os.getenv("DB_PASSWORD")
-DB_NAME = os.getenv("DB_NAME")
-
-def get_freelancer_data_from_db():
-    """
-    Se conecta a la base de datos de Busquidy y obtiene los perfiles de todos los freelancers activos.
-    """
-    print("Conectando a la base de datos para obtener perfiles de freelancers...")
-    try:
-        cnx = mysql.connector.connect(user=DB_USER, password=DB_PASS, host=DB_HOST, database=DB_NAME)
-        
-        # Esta consulta une las tablas para obtener las habilidades y carrera de cada freelancer
-        query = """
-        SELECT 
-            f.id_freelancer,
-            es.carrera,
-            GROUP_CONCAT(h.habilidad SEPARATOR ', ') AS habilidades
-        FROM freelancer f
-        JOIN usuario u ON f.id_usuario = u.id_usuario
-        LEFT JOIN educacion_superior es ON f.id_freelancer = es.id_freelancer
-        LEFT JOIN habilidades h ON f.id_freelancer = h.id_freelancer
-        WHERE u.is_active = TRUE
-        GROUP BY f.id_freelancer, es.carrera;
-        """
-        
-        df = pd.read_sql(query, cnx)
-        cnx.close()
-        
-        # Limpieza de datos
-        df['habilidades'] = df['habilidades'].fillna('') # Rellenar nulos
-        df['carrera'] = df['carrera'].fillna('')
-        
-        print(f"Se encontraron {len(df)} perfiles de freelancers en la base de datos.")
-        return df
-
-    except mysql.connector.Error as err:
-        print(f"Error de base de datos: {err}")
-        return None
+# Import the function from your new file
+from database import get_freelancer_data_from_db
 
 # --- API Y CARGA DE MODELOS (MODIFICADO) ---
 app = FastAPI(title="API de Recomendación Busquidy")
@@ -113,11 +73,13 @@ async def get_recommendations(project: ProjectRequest):
     
     # Calcular similitud contra los perfiles VIVOS de la BD
     similarities = cosine_similarity(proyecto_vector, live_profiles_matrix).flatten()
+    print("SIMILITUDES AQUI WON",similarities)
     
     top_indices = np.argsort(similarities)[-5:][::-1]
     
     # Mapear los índices a los IDs de freelancers reales de la BD
     recommended_ids = df_freelancers_live.iloc[top_indices]['id_freelancer'].tolist()
+    # print(f"Recomendaciones generadas para el proyecto: {recommended_ids}")
 
     return {"recommended_ids": recommended_ids}
 
