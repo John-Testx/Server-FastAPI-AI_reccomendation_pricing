@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+scikit-learn==1.6.1
+pandas
+numpy
+mysql-connector-python
+pymysql
+google-cloud-sql-connector
+python-dotenv
