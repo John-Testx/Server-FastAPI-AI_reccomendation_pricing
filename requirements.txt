@@ -5,5 +5,5 @@ pandas
 numpy
 mysql-connector-python
 pymysql
-google-cloud-sql-connector
+cloud-sql-python-connector[pymysql]
 python-dotenv
