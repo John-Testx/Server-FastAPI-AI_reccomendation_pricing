@@ -1,11 +1,10 @@
-# 1. Usar Python 3.10 (Estabilidad máxima para librerías de Google y Scikit)
+# Usamos Python 3.10-slim que es 100% compatible con google-cloud-sql-connector
 FROM python:3.10-slim
 
-# 2. Configurar directorio
+# Directorio de trabajo
 WORKDIR /app
 
-# 3. Instalar dependencias de sistema CRÍTICAS
-# Añadimos libffi-dev y libssl-dev para evitar fallos con criptografía/conexiones
+# Instalar dependencias del sistema necesarias para compilar librerías criptográficas y de base de datos
 RUN apt-get update && apt-get install -y \
     gcc \
     default-libmysqlclient-dev \
@@ -14,16 +13,15 @@ RUN apt-get update && apt-get install -y \
     libssl-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# 4. ACTUALIZACIÓN FORZADA DE PIP
-# Esto es vital para que pueda descargar las versiones modernas de las librerías
+# Actualizar pip para evitar errores con paquetes nuevos
 RUN pip install --no-cache-dir --upgrade pip
 
-# 5. Copiar e instalar requerimientos
+# Copiar e instalar dependencias
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 6. Copiar el código
+# Copiar el código
 COPY . .
 
-# 7. Ejecutar
+# Comando de ejecución
 CMD sh -c "uvicorn main:app --host 0.0.0.0 --port $PORT"
