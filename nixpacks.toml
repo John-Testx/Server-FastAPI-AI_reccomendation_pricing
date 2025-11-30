@@ -1,0 +1,5 @@
+[providers.python]
+version = "3.10"
+
+[phases.setup]
+nixPkgs = ["python310", "gcc"]  # gcc a veces es necesario para compilar ciertas libs
